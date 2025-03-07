@@ -3,4 +3,4 @@ start:
 
 stop:
 	@docker compose rm -v --stop --force
-	@docker rmi ticket-booking-backend
+	@docker rmi rt-stock-tracker-app
