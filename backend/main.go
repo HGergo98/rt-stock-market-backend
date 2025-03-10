@@ -33,7 +33,10 @@ func main() {
 		utils.StocksHistoryHandler(w, r, db)
 	})
 
-	// TODO: Endpoint for fetching all the past candles for a symbol
+	// Endpoint for fetching all the past candles for a symbol
+	http.HandleFunc("/stocks-candles", func(w http.ResponseWriter, r *http.Request) {
+		utils.CandlesHandler(w, r, db)
+	})
 
 	// TODO: Serve the endpoints
 }

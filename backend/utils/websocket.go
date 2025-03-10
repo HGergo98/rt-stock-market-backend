@@ -232,3 +232,17 @@ func StocksHistoryHandler(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResponse)
 }
+
+func CandlesHandler(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	// Query the db for the symbol from the request
+	symbol := r.URL.Query().Get("symbol")
+
+	// Query the db for all the candle data for the symbol
+	var candles []models.Candle
+	db.Where("symbol = ?", symbol).Order("timestamp asc").Find(&candles)
+
+	// Marshal the data to JSON and send it to the client
+	jsonResponse, _ := json.Marshal(candles)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResponse)
+}
