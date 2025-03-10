@@ -17,7 +17,8 @@ func main() {
 	finnhubWSConn := utils.ConnectToFinhubbWS(envConfig)
 	defer finnhubWSConn.Close()
 
-	// TODO: Handle incoming messages
+	// Handle incoming messages
+	go utils.HandleFinhubbWSMessages(finnhubWSConn, db)
 
 	// TODO: Broadcast messages to all connected clients
 
