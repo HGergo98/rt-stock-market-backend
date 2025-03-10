@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/HGergo98/rt-stock-market-backend/config"
 	"github.com/HGergo98/rt-stock-market-backend/db"
 	"github.com/HGergo98/rt-stock-market-backend/utils"
@@ -23,7 +25,9 @@ func main() {
 	// Broadcast messages to all connected clients
 	go utils.BroadcastUpdates()
 
-	// TODO: Endpoint for connect to the websocket
+	// Endpoint for connect to the websocket
+	http.HandleFunc("/ws", utils.WSHandler)
+
 	// TODO: Endpoint for fetching all the past candles for all the symbols
 	// TODO: Endpoint for fetching all the past candles for a symbol
 

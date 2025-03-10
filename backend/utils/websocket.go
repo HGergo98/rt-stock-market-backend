@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"sync"
 	"time"
 
@@ -175,6 +176,40 @@ func broadcastToClients(update *models.BroadcastMessage) {
 				clientConn.Close()
 				delete(clientsConn, clientConn)
 			}
+		}
+	}
+}
+
+// --- HANDLERS ---
+func WSHandler(w http.ResponseWriter, r *http.Request) {
+	// Upgare incoming request to a websocket connection
+	upgrader := websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("Error upgrading to websocket:", err)
+	}
+
+	// Close the connection when the function returns & unregister the client when they disconnect
+	defer conn.Close()
+	defer func() {
+		delete(clientsConn, conn)
+		log.Println("Client disconnected")
+	}()
+
+	// Register the client
+	for {
+		_, symbol, err := conn.ReadMessage()
+		clientsConn[conn] = string(symbol)
+		log.Println("Client connected with symbol:", string(symbol))
+
+		if err != nil {
+			log.Println("Error reading message from client:", err)
+			break
 		}
 	}
 }
