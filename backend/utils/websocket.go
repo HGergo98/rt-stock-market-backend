@@ -213,3 +213,22 @@ func WSHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+func StocksHistoryHandler(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+	// Query the db for all the candle data for all the symbols
+	var candles []models.Candle
+	db.Order("timestamp asc").Find(&candles)
+
+	// Create a map to group data by symbol
+	candlesBySymbol := make(map[string][]*models.Candle)
+
+	for _, candle := range candles {
+		symbol := candle.Symbol
+		candlesBySymbol[symbol] = append(candlesBySymbol[symbol], &candle)
+	}
+
+	// Marshal the data to JSON and send it to the client
+	jsonResponse, _ := json.Marshal(candlesBySymbol)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResponse)
+}

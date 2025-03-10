@@ -28,7 +28,11 @@ func main() {
 	// Endpoint for connect to the websocket
 	http.HandleFunc("/ws", utils.WSHandler)
 
-	// TODO: Endpoint for fetching all the past candles for all the symbols
+	// Endpoint for fetching all the past candles for all the symbols
+	http.HandleFunc("/stocks-history", func(w http.ResponseWriter, r *http.Request) {
+		utils.StocksHistoryHandler(w, r, db)
+	})
+
 	// TODO: Endpoint for fetching all the past candles for a symbol
 
 	// TODO: Serve the endpoints
