@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/HGergo98/rt-stock-market-backend/config"
 	"github.com/HGergo98/rt-stock-market-backend/db"
+	"github.com/HGergo98/rt-stock-market-backend/utils"
 )
 
 func main() {
@@ -12,7 +13,9 @@ func main() {
 	// Database connection
 	db := db.InitDB(envConfig, db.DBMigrator)
 
-	// TODO: Connect to Finhubb Websockets
+	// Connect to Finhubb Websockets
+	finnhubWSConn := utils.ConnectToFinhubbWS(envConfig)
+	defer finnhubWSConn.Close()
 
 	// TODO: Handle incoming messages
 
