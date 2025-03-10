@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/HGergo98/rt-stock-market-backend/config"
@@ -38,5 +39,6 @@ func main() {
 		utils.CandlesHandler(w, r, db)
 	})
 
-	// TODO: Serve the endpoints
+	// Serve the endpoints
+	http.ListenAndServe(fmt.Sprintf(":%s", envConfig.ServerPort), nil)
 }
