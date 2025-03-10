@@ -20,7 +20,8 @@ func main() {
 	// Handle incoming messages
 	go utils.HandleFinhubbWSMessages(finnhubWSConn, db)
 
-	// TODO: Broadcast messages to all connected clients
+	// Broadcast messages to all connected clients
+	go utils.BroadcastUpdates()
 
 	// TODO: Endpoint for connect to the websocket
 	// TODO: Endpoint for fetching all the past candles for all the symbols

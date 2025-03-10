@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -22,6 +23,9 @@ var (
 
 	// Broadcast message to all connected clients
 	broadcast = make(chan *models.BroadcastMessage)
+
+	// Map all connected clients and their symbols
+	clientsConn = make(map[*websocket.Conn]string)
 )
 
 func ConnectToFinhubbWS(envConfig *config.EnvConfig) *websocket.Conn {
@@ -123,5 +127,54 @@ func processTradeData(tradeData *models.TradeData, db *gorm.DB) {
 	broadcast <- &models.BroadcastMessage{
 		UpdateType: models.Live,
 		Candle:     tempCandle.ToCandle(),
+	}
+}
+
+// Sned candle updates to all connected clients for every 1 second, unless it's closed candle
+func BroadcastUpdates() {
+	// Set the broadcast interval to 1 second
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	var latesUpdate *models.BroadcastMessage
+
+	for {
+		select {
+		case update := <-broadcast:
+			// Watch for new updates from the broadcast channel
+			// If the update is a closed candle, send it to all connected clients immediately
+			if update.UpdateType == models.Closed {
+				// Send the closed candle to all connected clients
+				broadcastToClients(update)
+			} else {
+				// Replace temp updates
+				latesUpdate = update
+			}
+		case <-ticker.C:
+			// Broadcast the latest update to all connected clients
+			if latesUpdate != nil {
+				// Send the closed candle to all connected clients
+				broadcastToClients(latesUpdate)
+			}
+			latesUpdate = nil
+		}
+	}
+}
+
+func broadcastToClients(update *models.BroadcastMessage) {
+	jsonUpdate, _ := json.Marshal(update)
+
+	// Send the update to all connected clients subscribed to the symbol
+	for clientConn, symbol := range clientsConn {
+		// If the client is subscribed to the symbol
+		if symbol == update.Candle.Symbol {
+			// Send the update to the client
+			err := clientConn.WriteMessage(websocket.TextMessage, jsonUpdate)
+			if err != nil {
+				log.Println("Error writing message to client:", err)
+				clientConn.Close()
+				delete(clientsConn, clientConn)
+			}
+		}
 	}
 }
